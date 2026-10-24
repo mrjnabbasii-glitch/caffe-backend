@@ -1,0 +1,10 @@
+services:
+  mongodb:
+    image: mongo:8.0
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - cafe_mongodb:/data/db
+    restart: unless-stopped
+volumes:
+  cafe_mongodb:
