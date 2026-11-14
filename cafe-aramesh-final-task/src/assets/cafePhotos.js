@@ -118,10 +118,7 @@ export const menuPhotos = {
 }
 
 
-// Real, camera-shot photos sourced from Unsplash. Photo credit and URLs:
-// see PHOTO_SOURCES.md at the repository root. The rest of the existing photos
-// stay exactly as they were; only the drink cards use these remote sources.
-// The client falls back to menuPhotos[id] if a photo can't load offline.
+// Remote menu photos use local images as a fallback.
 export const realDrinkPhotos = {
   1: 'https://images.unsplash.com/photo-1783692477716-923ba0cfbf0f?auto=format&fit=crop&w=900&q=82',
   3: 'https://images.unsplash.com/photo-1780064205176-098641bb1010?auto=format&fit=crop&w=900&q=82',

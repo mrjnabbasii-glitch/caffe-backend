@@ -6,7 +6,7 @@ import 'quasar/src/css/index.sass'
 import '@quasar/extras/material-icons/material-icons.css'
 import '@fontsource-variable/vazirmatn'
 import './assets/main.css'
-import './assets/approved-forest-walnut.css'
+import './assets/forest-walnut.css'
 
 import App from './App.vue'
 import router from './router'
