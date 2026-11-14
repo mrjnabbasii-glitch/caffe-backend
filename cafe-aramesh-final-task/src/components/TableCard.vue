@@ -1,64 +1,56 @@
 <template>
-  <q-card
-    flat
-    bordered
-    class="table-card cafe-card"
-    :class="{ 'is-reserved': table.isReserved || table.isLocked }"
-    @click="handleClick"
-  >
-    <q-card-section class="text-center">
-      <div class="text-h6 cafe-brown">{{ table.title }}</div>
-      <div class="text-body2 q-mt-sm">ظرفیت: {{ table.capacity }} نفر</div>
-
-      <q-badge
-        v-if="table.isReserved"
-        color="negative"
-        class="q-mt-md q-pa-sm"
-      >
-        رزرو شده
-      </q-badge>
-
-      <q-badge
-        v-else-if="table.isLocked"
-        color="orange"
-        class="q-mt-md q-pa-sm"
-      >
-        رزرو موقت
-      </q-badge>
-
-      <q-badge
-        v-else
-        color="positive"
-        class="q-mt-md q-pa-sm"
-      >
-        آماده رزرو
-      </q-badge>
-    </q-card-section>
-
-    <q-card-actions align="center">
-      <q-btn
-        :disable="table.isReserved || table.isLocked"
-        class="cafe-btn text-white"
-        label="رزرو این میز"
-        unelevated
-      />
-    </q-card-actions>
-  </q-card>
+  <article class="table-card" :class="{ 'table-card-preferred': preferred }">
+    <img
+      v-if="tablePhotos[table.id]"
+      class="table-card-photo"
+      :src="tablePhotos[table.id]"
+      alt=""
+      loading="lazy"
+      width="500"
+      height="330"
+    />
+    <div class="table-card-details">
+      <div class="table-card-content">
+        <div class="table-card-icon"><q-icon name="event_seat" size="25px" /></div>
+        <div>
+          <h2>{{ table.title }}</h2>
+          <p class="table-card-meta">
+            <span>{{ table.capacity.toLocaleString('fa-IR') }} نفر</span>
+            <span aria-hidden="true">·</span>
+            <span>{{ table.price.toLocaleString('fa-IR') }} تومان</span>
+          </p>
+        </div>
+      </div>
+      <div class="table-card-actions">
+        <span class="table-status" :class="{ 'table-status-unavailable': unavailable }">{{
+          status
+        }}</span>
+        <q-btn
+          :disable="unavailable || busy"
+          class="cafe-btn text-white"
+          :label="preferred ? 'ادامهٔ رزرو' : 'انتخاب میز'"
+          unelevated
+          @click="$emit('select', table)"
+        />
+      </div>
+    </div>
+  </article>
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { tablePhotos } from '../assets/cafePhotos'
+
 const props = defineProps({
-  table: {
-    type: Object,
-    required: true
-  }
+  table: { type: Object, required: true },
+  busy: Boolean,
+  preferred: Boolean
 })
 
-const emit = defineEmits(['select'])
+defineEmits(['select'])
 
-function handleClick() {
-  if (!props.table.isReserved && !props.table.isLocked) {
-    emit('select', props.table)
-  }
-}
+const unavailable = computed(() => props.table.isReserved || props.table.isLocked)
+const status = computed(() =>
+  props.table.isReserved ? 'رزرو شده' : props.table.isLocked ? 'قفل موقت' : 'آمادهٔ رزرو'
+)
 </script>

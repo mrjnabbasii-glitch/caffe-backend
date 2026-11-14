@@ -1,130 +1,157 @@
 <template>
   <MainLayout>
-    <q-page class="page-width q-py-xl">
-      <div class="text-h4 text-center text-weight-bold cafe-brown q-mb-md">
-        رزرو میز
-      </div>
+    <q-page class="booking-page">
+      <section v-if="!bookingOpen" class="booking-list" aria-labelledby="table-list-title">
+        <h1 id="table-list-title" ref="listHeading" tabindex="-1">رزرو میز</h1>
+        <p class="booking-subtitle">تعداد نفرات را انتخاب کنید تا میزهای مناسب را ببینید.</p>
 
-      <q-card class="cafe-card" flat bordered>
-        <q-card-section class="text-center">
-          <div class="text-h6">رزرو سریع کافه</div>
-          <p class="q-mb-none">
-            ابتدا تعداد نفرات را انتخاب کنید تا میزهای مناسب نمایش داده شوند.
-          </p>
-        </q-card-section>
+        <div class="booking-options capacity-options" role="group" aria-label="تعداد نفرات">
+          <button
+            v-for="option in capacityOptions"
+            :key="option.value"
+            type="button"
+            :aria-pressed="capacityFilter === option.value"
+            @click="capacityFilter = option.value"
+          >
+            {{ option.label }}
+          </button>
+        </div>
 
-        <q-card-section>
-          <q-select
-            v-model="capacityFilter"
-            :options="capacityOptions"
-            label="تعداد نفرات"
-            outlined
-            emit-value
-            map-options
-            class="q-mb-xl"
+        <div
+          v-if="!bookingStore.loading && !bookingStore.error && !filteredTables.length"
+          class="booking-empty"
+        >
+          میزی با این ظرفیت پیدا نشد.
+        </div>
+        <div v-else class="booking-table-grid">
+          <TableCard
+            v-for="table in filteredTables"
+            :key="table.id"
+            :table="table"
+            :busy="bookingStore.busy"
+            :preferred="String(table.id) === route.query.table"
+            @select="openBooking"
           />
+        </div>
+      </section>
 
-          <div v-if="!filteredTables.length" class="text-center text-grey-7 q-py-xl">
-            میزی با این ظرفیت در دسترس نیست.
+      <form v-else class="booking-summary" @submit.prevent="confirmBooking">
+        <h1 ref="summaryHeading" tabindex="-1">رزرو میز</h1>
+        <div class="booking-countdown" role="timer" aria-live="off">
+          <q-icon name="timer" size="24px" />
+          <span>زمان تکمیل رزرو</span>
+          <strong dir="ltr">{{ formatDigits(formattedTime) }}</strong>
+        </div>
+
+        <div class="booking-details-grid">
+          <aside class="booking-selected-table">
+            <img
+              v-if="tablePhoto"
+              class="booking-photo"
+              :src="tablePhoto"
+              alt="عکس میز انتخاب‌شده"
+              width="760"
+              height="440"
+            />
+            <div class="booking-table-title">
+              <h2>{{ bookingStore.selectedTable?.title }}</h2>
+              <span class="booking-capacity">
+                <q-icon name="groups" size="20px" />
+                <span>{{ formatDigits(bookingStore.selectedTable?.capacity ?? '') }} نفر</span>
+              </span>
+            </div>
+          </aside>
+          <div class="booking-form-fields">
+        <fieldset class="booking-section">
+          <legend>ساعت حضور</legend>
+          <div class="booking-options">
+            <label v-for="time in timeOptions" :key="time" class="booking-time-option">
+              <input
+                v-model="bookingStore.bookingTime"
+                type="radio"
+                name="booking-time"
+                :value="time"
+              />
+              <span dir="ltr">{{ formatDigits(time) }}</span>
+            </label>
           </div>
+        </fieldset>
 
-          <div v-else class="row q-col-gutter-lg">
-            <div
-              v-for="table in filteredTables"
-              :key="table.id"
-              class="col-12 col-sm-6 col-md-4"
-            >
-              <TableCard :table="table" @select="openBooking" />
-            </div>
+        <div class="booking-section booking-extras">
+          <q-input
+            v-model="bookingStore.customer.name"
+            outlined
+            dense
+            label="نام رزروکننده"
+            maxlength="60"
+            autocomplete="name"
+          />
+          <details v-if="bookingStore.addonsList.length" class="booking-addons">
+            <summary>افزودن پکیج پذیرایی</summary>
+            <CafeAddons v-model="bookingStore.addons" :items="bookingStore.addonsList" />
+          </details>
+        </div>
+
+        <div class="booking-section">
+          <div class="booking-total">
+            <span>مبلغ نهایی</span>
+            <strong>{{ bookingStore.totalPrice.toLocaleString('fa-IR') }} تومان</strong>
           </div>
-        </q-card-section>
-      </q-card>
-
-      <q-dialog v-model="dialogOpen" persistent>
-        <q-card style="width: 560px; max-width: 95vw">
-          <q-card-section class="row items-center justify-between">
-            <div>
-              <div class="text-h6">{{ bookingStore.selectedTable?.title }}</div>
-              <div class="text-body2 q-mt-xs">
-                ظرفیت: {{ bookingStore.selectedTable?.capacity }} نفر
-              </div>
-            </div>
-
-            <q-chip v-if="bookingStore.temporaryLock" color="orange" text-color="white" icon="schedule">
-              رزرو موقت: {{ formattedTime }}
-            </q-chip>
-          </q-card-section>
-
-          <q-separator />
-
-          <q-card-section>
-            <q-banner v-if="bookingStore.temporaryLock" class="bg-orange-1 text-orange-10 q-mb-md" rounded>
-              این میز برای شما موقتاً نگه داشته شده است. تا پایان زمان باقی‌مانده رزرو را نهایی کنید.
-            </q-banner>
-
-            <q-input
-              v-model="bookingStore.customer.name"
-              outlined
-              label="نام مشتری"
-              class="q-mb-md"
-              maxlength="60"
-              counter
-            />
-
-            <q-select
-              v-model="bookingStore.bookingTime"
-              :options="timeOptions"
-              outlined
-              label="ساعت حضور"
-              class="q-mb-lg"
-            />
-
-            <CafeAddons
-              v-model="bookingStore.addons"
-              :items="bookingStore.addonsList"
-            />
-
-            <q-separator class="q-my-lg" />
-
-            <div class="row justify-between text-subtitle1 text-weight-bold">
-              <span>مبلغ نهایی</span>
-              <span>{{ bookingStore.totalPrice.toLocaleString('fa-IR') }} تومان</span>
-            </div>
-          </q-card-section>
-
-          <q-card-actions align="right">
-            <q-btn flat label="انصراف" :disable="bookingStore.busy" @click="cancelBooking" />
-            <q-btn
-              label="تأیید و دریافت بلیت"
-              class="cafe-btn text-white"
-              unelevated
-              :loading="bookingStore.busy"
-              :disable="!canSubmit || !bookingStore.temporaryLock"
-              @click="confirmBooking"
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
+          <q-btn
+            type="submit"
+            label="تأیید رزرو"
+            class="cafe-btn booking-confirm text-white"
+            unelevated
+            :loading="bookingStore.busy"
+            :disable="!canSubmit || !bookingStore.temporaryLock"
+          />
+          <q-btn
+            flat
+            label="انصراف و آزاد کردن میز"
+            class="booking-cancel"
+            :disable="bookingStore.busy"
+            @click="cancelBooking"
+          />
+        </div>
+          </div>
+        </div>
+      </form>
     </q-page>
   </MainLayout>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '../stores/authStore'
 import { useQuasar } from 'quasar'
 import MainLayout from '../layouts/MainLayout.vue'
+import { tablePhotos } from '../assets/cafePhotos'
 import TableCard from '../components/TableCard.vue'
 import CafeAddons from '../components/CafeAddons.vue'
 import { useBookingStore } from '../stores/bookingStore'
 import { useBookingTimer } from '../composables/useBookingTimer'
 
 const router = useRouter()
+const route = useRoute()
+const auth = useAuthStore()
 const $q = useQuasar()
 const bookingStore = useBookingStore()
 
 const capacityFilter = ref('all')
-const dialogOpen = ref(false)
+const bookingOpen = ref(false)
+const listHeading = ref(null)
+const summaryHeading = ref(null)
+
+watch(bookingOpen, async (opened) => {
+  await nextTick()
+  const heading = opened ? summaryHeading.value : listHeading.value
+  heading?.focus()
+})
+
+function formatDigits(value) {
+  return String(value).replace(/\d/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[digit])
+}
 
 const capacityOptions = [
   { label: 'همه', value: 'all' },
@@ -134,17 +161,20 @@ const capacityOptions = [
 ]
 
 const timeOptions = computed(() => bookingStore.timeOptions)
+const tablePhoto = computed(() => tablePhotos[bookingStore.selectedTable?.id])
 let refreshInterval
 onMounted(() => {
   refreshInterval = setInterval(() => {
-    bookingStore.refreshTables().catch(error => { bookingStore.error = error.message })
+    bookingStore.refreshTables().catch((error) => {
+      bookingStore.error = error.message
+    })
   }, 15000)
 })
 
 const filteredTables = computed(() =>
   capacityFilter.value === 'all'
     ? bookingStore.tables
-    : bookingStore.tables.filter(table => table.capacity === Number(capacityFilter.value))
+    : bookingStore.tables.filter((table) => table.capacity === capacityFilter.value)
 )
 
 const canSubmit = computed(() =>
@@ -155,11 +185,17 @@ const canSubmit = computed(() =>
   )
 )
 
-const { formattedTime, start: startTimer, stop: stopTimer } = useBookingTimer(() => {
+const {
+  formattedTime,
+  start: startTimer,
+  stop: stopTimer
+} = useBookingTimer(() => {
   const expiredTable = bookingStore.selectedTable?.title || 'میز انتخابی'
 
-  dialogOpen.value = false
-  bookingStore.releaseSelectedTable().catch(error => $q.notify({ type: 'negative', message: error.message }))
+  bookingOpen.value = false
+  bookingStore
+    .releaseSelectedTable()
+    .catch((error) => $q.notify({ type: 'negative', message: error.message }))
 
   $q.notify({
     type: 'warning',
@@ -170,9 +206,13 @@ const { formattedTime, start: startTimer, stop: stopTimer } = useBookingTimer(()
 })
 
 async function openBooking(table) {
+  if (!auth.isAuthenticated) {
+    const redirect = router.resolve({ path: '/reservation', query: { table: table.id } }).fullPath
+    return router.push({ name: 'login', query: { redirect } })
+  }
   try {
     if (await bookingStore.selectTable(table)) {
-      dialogOpen.value = true
+      bookingOpen.value = true
       startTimer(bookingStore.expiresAt)
     }
   } catch (error) {
@@ -183,8 +223,10 @@ async function openBooking(table) {
 
 function cancelBooking() {
   stopTimer()
-  dialogOpen.value = false
-  bookingStore.releaseSelectedTable().catch(error => $q.notify({ type: 'negative', message: error.message }))
+  bookingOpen.value = false
+  bookingStore
+    .releaseSelectedTable()
+    .catch((error) => $q.notify({ type: 'negative', message: error.message }))
 }
 
 async function confirmBooking() {
@@ -194,7 +236,7 @@ async function confirmBooking() {
     const reservation = await bookingStore.saveReservation()
     if (!reservation) return
     stopTimer()
-    dialogOpen.value = false
+    bookingOpen.value = false
 
     $q.notify({
       type: 'positive',
