@@ -539,8 +539,7 @@ a {
   margin-block-start: auto;
 }
 
-/* Cafe Aramesh — forest green + walnut wood visual refresh.
-   Only visual changes: menu data, categories, images and API flow stay untouched. */
+/* Forest and walnut theme. */
 :root {
   --cafe-primary: #345943;
   --cafe-primary-dark: #203e30;
@@ -668,8 +667,7 @@ body, .cafe-bg {
 @media (prefers-reduced-motion: reduce) { .cafe-menu-item,.cafe-menu-page .booking-options button { transition:none; } }
 
 
-/* Approved final concept: walnut-wood navigation + deep forest-green pages.
-   No menu-item metadata, API routes, or booking behavior is modified. */
+/* Forest and walnut theme. */
 :root {
  --cafe-primary: #31573d;
  --cafe-primary-dark: #172e23;
