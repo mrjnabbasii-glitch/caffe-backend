@@ -1,8 +1,11 @@
 node_modules/
 dist/
+coverage/
 .env
 .env.*
 !.env.example
-coverage/
+
+# Local development data (never commit: contains databases and password-reset links)
 server/.cache/
 server/.local-db/
+server/.local-mail/

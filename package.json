@@ -4,28 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "setup": "npm --prefix server install && npm --prefix cafe-aramesh-final-task install",
+    "setup": "npm --prefix server ci && npm --prefix cafe-aramesh-final-task ci",
     "dev": "node scripts/dev.js",
     "dev:local": "node scripts/local-dev.js",
     "dev:api": "npm --prefix server run dev",
     "dev:web": "npm --prefix cafe-aramesh-final-task run dev",
-    "build": "npm --prefix cafe-aramesh-final-task run build",
+    "build": "npm --prefix server run build && npm --prefix cafe-aramesh-final-task run build",
     "start": "npm --prefix server start",
     "test": "npm --prefix server test",
-    "preview": "npm --prefix cafe-aramesh-final-task run preview"
-  },
-  "dependencies": {
-    "@quasar/extras": "^1.17.0",
-    "axios": "^1.12.2",
-    "pinia": "^3.0.3",
-    "quasar": "^2.18.5",
-    "vue": "^3.5.42",
-    "vue-router": "^4.5.1"
+    "preview": "npm --prefix cafe-aramesh-final-task run preview",
+    "format": "prettier --write server/src server/test scripts cafe-aramesh-final-task/src",
+    "format:check": "prettier --check server/src server/test scripts cafe-aramesh-final-task/src",
+    "test:local": "node scripts/check-local.js",
+    "typecheck": "npm --prefix server run typecheck"
   },
   "devDependencies": {
-    "@quasar/vite-plugin": "^1.10.0",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "sass-embedded": "^1.105.1",
-    "vite": "^7.1.7"
+    "prettier": "^3.6.2"
   }
 }
