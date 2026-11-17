@@ -1,5 +1,5 @@
 <template>
-  <AuthLayout>
+  <AuthLayout :key="mode" :show-bird="mode === 'login' || mode === 'register'">
     <PasswordRecoveryForm
       v-if="mode === 'forgot-password' || mode === 'reset-password'"
       :key="mode"

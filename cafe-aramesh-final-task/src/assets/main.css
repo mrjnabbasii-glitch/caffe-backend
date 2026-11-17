@@ -667,7 +667,7 @@ body, .cafe-bg {
 @media (prefers-reduced-motion: reduce) { .cafe-menu-item,.cafe-menu-page .booking-options button { transition:none; } }
 
 
-/* Forest and walnut theme. */
+/* Walnut navigation and forest-green pages. */
 :root {
  --cafe-primary: #31573d;
  --cafe-primary-dark: #172e23;

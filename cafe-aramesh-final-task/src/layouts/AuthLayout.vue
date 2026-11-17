@@ -7,13 +7,19 @@
       >
     </header>
     <section class="auth-stage">
-      <div class="auth-panel"><slot /></div>
+      <div class="auth-panel">
+        <CabinBird v-if="showBird" />
+        <slot />
+      </div>
     </section>
   </main>
 </template>
 
 <script setup>
 import CafeMark from '../components/CafeMark.vue'
+import CabinBird from '../components/CabinBird.vue'
+
+defineProps({ showBird: Boolean })
 </script>
 
 <style scoped>
@@ -73,6 +79,7 @@ header {
   padding: 18px 0 42px;
 }
 .auth-panel {
+  position: relative;
   width: min(100%, 370px);
   padding: clamp(18px, 3vw, 28px);
   border: 1px solid #f0dfbc80;
@@ -90,7 +97,7 @@ header {
   --cafe-border: #e1d1ad9e;
 }
 @media (max-width: 640px) {
-  .auth-stage { padding-block: 22px; }
+  .auth-stage { padding-block: 46px 22px; }
   .auth-panel { background: rgba(27, 33, 23, .87); }
 }
 </style>
