@@ -42,25 +42,20 @@ export const useBookingStore = defineStore('booking', () => {
     if (auth.user?.id !== userId) return
     reservations.value = data.reservations
   }
+  async function loadMenu() {
+    const menu = await request('get', '/menu')
+    menuItems.value = menu.items
+    timeOptions.value = menu.timeOptions
+  }
   async function initialize() {
     if (initialization) return initialization
     loading.value = true
     error.value = ''
     initialization = (async () => {
-      try {
-        const [menu] = await Promise.all([
-          request('get', '/menu'),
-          refreshTables(),
-          loadReservations()
-        ])
-        menuItems.value = menu.items
-        timeOptions.value = menu.timeOptions
-      } catch (cause) {
-        error.value = cause.message
-      } finally {
-        loading.value = false
-        initialization = null
-      }
+      const results = await Promise.allSettled([loadMenu(), refreshTables(), loadReservations()])
+      error.value = results.find(({ status }) => status === 'rejected')?.reason.message ?? ''
+      loading.value = false
+      initialization = null
     })()
     return initialization
   }

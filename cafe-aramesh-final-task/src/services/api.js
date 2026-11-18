@@ -1,4 +1,5 @@
 import axios from 'axios'
+export const previewMode = false
 
 // Relative '/api': in development Vite proxies it to the backend, in production the backend
 // serves this page itself. withCredentials lets the browser send the HttpOnly session cookie.

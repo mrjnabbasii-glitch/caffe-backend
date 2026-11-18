@@ -34,6 +34,7 @@ export const openApiDocument = {
     { name: 'Tables', description: 'میزها و قفل موقت ۵ دقیقه‌ای' },
     { name: 'Reservations', description: 'ثبت و مشاهدهٔ رزرو' },
     { name: 'Menu', description: 'منوی کافه' },
+    { name: 'Orders', description: 'سفارش منو با پرداخت هنگام تحویل' },
     { name: 'Health', description: 'وضعیت سرور' }
   ],
 
@@ -145,6 +146,39 @@ export const openApiDocument = {
       }
     },
 
+    '/orders': {
+      post: {
+        tags: ['Orders'],
+        summary: 'ثبت سفارش منو',
+        security: loginRequired,
+        requestBody: { required: true, ...json('OrderInput') },
+        responses: {
+          201: ok('سفارش ثبت شد.', 'OrderResponse'),
+          200: ok('رسید سفارش قبلی برای همین کلید.', 'OrderResponse'),
+          400: error('اطلاعات سبد نامعتبر است.'),
+          401: error('وارد نشده‌اید.'),
+          409: error('قیمت یا موجودی تغییر کرده یا کلید سفارش تکراری است.')
+        }
+      }
+    },
+
+    '/orders/mine': {
+      get: {
+        tags: ['Orders'],
+        summary: 'سفارش‌های ثبت‌شدهٔ حساب فعلی',
+        security: loginRequired,
+        parameters: [{
+          in: 'query', name: 'before', description: 'مقدار nextCursor از صفحهٔ قبلی',
+          schema: { type: 'string', pattern: '^[a-fA-F0-9]{24}$' }
+        }],
+        responses: {
+          200: ok('تا ۲۰ سفارش از جدید به قدیم.', 'OrderHistoryResponse'),
+          400: error('شناسهٔ صفحه نامعتبر است.'),
+          401: error('وارد نشده‌اید.')
+        }
+      }
+    },
+
     // ----- Tables -----
     '/tables': {
       get: {
@@ -247,6 +281,74 @@ export const openApiDocument = {
       sessionCookie: { type: 'apiKey', in: 'cookie', name: 'cafe_session' }
     },
     schemas: {
+      OrderInput: {
+        type: 'object',
+        required: ['checkoutKey', 'items', 'expectedTotal'],
+        properties: {
+          checkoutKey: { type: 'string', pattern: '^[a-f0-9]{36}$' },
+          expectedTotal: { type: 'integer', minimum: 0, description: 'جمعی که کاربر تأیید کرده، به تومان' },
+          items: {
+            type: 'array',
+            minItems: 1,
+            maxItems: 50,
+            items: {
+              type: 'object',
+              required: ['id', 'quantity'],
+              properties: {
+                id: { type: 'integer', minimum: 1 },
+                quantity: { type: 'integer', minimum: 1, maximum: 20 }
+              }
+            }
+          }
+        }
+      },
+      OrderResponse: {
+        type: 'object',
+        properties: {
+          order: {
+            type: 'object',
+            required: ['orderId', 'total', 'paymentMethod'],
+            properties: {
+              orderId: { type: 'string' },
+              total: { type: 'integer', minimum: 0 },
+              paymentMethod: { type: 'string', enum: ['pay_at_pickup'] }
+            }
+          }
+        }
+      },
+
+      OrderHistoryResponse: {
+        type: 'object',
+        required: ['orders', 'nextCursor'],
+        properties: {
+          nextCursor: { type: 'string', nullable: true },
+          orders: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['orderId', 'items', 'total', 'createdAt'],
+              properties: {
+                orderId: { type: 'string' },
+                total: { type: 'integer', minimum: 0 },
+                createdAt: { type: 'string', format: 'date-time' },
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'integer' },
+                      title: { type: 'string' },
+                      quantity: { type: 'integer' },
+                      unitPrice: { type: 'integer' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
       // ----- Inputs (what the DTOs accept) -----
       SignupInput: {
         type: 'object',

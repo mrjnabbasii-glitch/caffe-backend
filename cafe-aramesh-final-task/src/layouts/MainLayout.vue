@@ -22,15 +22,20 @@
           >
         </nav>
 
-        <q-btn flat round icon="person_outline" aria-label="منوی حساب کاربری" class="gt-sm">
-          <q-menu anchor="bottom end" self="top end">
-            <q-list style="min-width: 170px">
-              <q-item v-if="!auth.isAuthenticated" clickable to="/login">
+        <CartLink />
+
+        <q-btn flat round icon="person_outline" aria-label="منوی حساب کاربری" class="cafe-account-button gt-sm">
+          <q-menu class="cafe-account-menu" anchor="bottom end" self="top end" :offset="[0, 8]">
+            <q-list padding>
+              <q-item v-if="!auth.isAuthenticated" clickable :to="loginDestination">
                 <q-item-section>ورود / ثبت‌نام</q-item-section>
               </q-item>
               <template v-else>
                 <q-item clickable to="/my-reservations">
                   <q-item-section>رزروهای من</q-item-section>
+                </q-item>
+                <q-item clickable to="/my-orders">
+                  <q-item-section>سفارش‌های من</q-item-section>
                 </q-item>
                 <q-item clickable :disable="loggingOut" @click="logout">
                   <q-item-section>خروج از حساب</q-item-section>
@@ -66,7 +71,10 @@
         <q-item clickable v-ripple to="/my-reservations" @click="drawer = false">
           <q-item-section>رزروهای من</q-item-section>
         </q-item>
-        <q-item v-if="!auth.isAuthenticated" clickable to="/login" @click="drawer = false"
+        <q-item clickable v-ripple to="/my-orders" @click="drawer = false">
+          <q-item-section>سفارش‌های من</q-item-section>
+        </q-item>
+        <q-item v-if="!auth.isAuthenticated" clickable :to="loginDestination" @click="drawer = false"
           ><q-item-section>ورود / ثبت‌نام</q-item-section></q-item
         >
         <q-item v-else clickable :disable="loggingOut" @click="logout"
@@ -101,10 +109,15 @@ import { useQuasar } from 'quasar'
 import { useAuthStore } from '../stores/authStore'
 import { useBookingStore } from '../stores/bookingStore'
 import CafeMark from '../components/CafeMark.vue'
+import CartLink from '../components/CartLink.vue'
 
 const auth = useAuthStore()
 const bookingStore = useBookingStore()
 const router = useRouter()
+const loginDestination = computed(() => ({
+  name: 'login',
+  query: { redirect: router.currentRoute.value.fullPath }
+}))
 const $q = useQuasar()
 const drawer = ref(false)
 const loggingOut = ref(false)
@@ -137,3 +150,39 @@ async function logout() {
   }
 }
 </script>
+
+<style scoped>
+.cafe-account-button {
+  background: #183322;
+  border: 1px solid #c99461;
+}
+
+:global(.cafe-account-menu) {
+  min-width: 180px;
+  background: #132d1c;
+  color: #fff1d6;
+  border: 1px solid #c99461;
+  border-radius: 12px;
+  direction: rtl;
+}
+
+:global(.cafe-account-menu .q-item) {
+  color: inherit;
+  font-weight: 600;
+}
+
+:global(.cafe-account-menu .q-item:focus-visible) {
+  outline: 2px solid #fff1d6;
+  outline-offset: -3px;
+}
+
+@media (max-width: 600px) {
+  .cafe-toolbar { flex-wrap: wrap; gap: 5px 9px; padding-block: 7px; }
+  .cafe-brand { margin-inline-end: auto; }
+  .cafe-clock { order: 1; margin-inline: auto; flex-basis: max-content; }
+}
+@media (max-width: 480px) {
+  .cafe-clock { margin-inline: 0; }
+  .cafe-clock::before { content: 'تهران'; }
+}
+</style>

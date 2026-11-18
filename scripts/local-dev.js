@@ -26,7 +26,12 @@ try {
   console.log('Starting local MongoDB. First run may download about 600 MB; please wait.')
   mongo = await MongoMemoryServer.create({
     binary: { version: '7.0.24' },
-    instance: { dbPath: databasePath, storageEngine: 'wiredTiger', ip: '127.0.0.1', args: process.platform === 'win32' ? [] : ['--nounixsocket'] }
+    instance: {
+      dbPath: databasePath,
+      storageEngine: 'wiredTiger',
+      ip: '127.0.0.1',
+      args: process.platform === 'win32' ? [] : ['--nounixsocket']
+    }
   })
   console.log(`MongoDB ready. Persistent data: ${databasePath}`)
   startDevelopment({

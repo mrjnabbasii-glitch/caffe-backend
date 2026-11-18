@@ -33,7 +33,7 @@
           class="home-menu-card"
           to="/menu"
         >
-          <img v-if="menuPhotoFor(item)" :src="menuPhotoFor(item)" :alt="`عکس ${item.title}`" @error="useFallbackMenuPhoto($event, item.id)" loading="lazy" width="400" height="260" />
+          <img v-if="menuPhotoFor(item)" :src="menuPhotoFor(item)" :alt="`عکس ${item.title}`" decoding="async" loading="lazy" width="400" height="260" />
           <span>{{ item.title }}</span>
         </router-link>
       </section>
@@ -45,7 +45,7 @@
 import MainLayout from '../layouts/MainLayout.vue'
 import heroPhoto from '../assets/photos/cafe.webp'
 import { computed } from 'vue'
-import { menuPhotoFor, useFallbackMenuPhoto } from '../assets/cafePhotos'
+import { menuPhotoFor } from '../assets/cafePhotos'
 import { useBookingStore } from '../stores/bookingStore'
 const bookingStore = useBookingStore()
 const suggestions = computed(() => bookingStore.menuItems.filter(item => menuPhotoFor(item)).slice(0, 3))

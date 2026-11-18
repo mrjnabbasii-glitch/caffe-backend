@@ -539,7 +539,7 @@ a {
   margin-block-start: auto;
 }
 
-/* Forest and walnut theme. */
+
 :root {
   --cafe-primary: #345943;
   --cafe-primary-dark: #203e30;
@@ -667,7 +667,7 @@ body, .cafe-bg {
 @media (prefers-reduced-motion: reduce) { .cafe-menu-item,.cafe-menu-page .booking-options button { transition:none; } }
 
 
-/* Walnut navigation and forest-green pages. */
+
 :root {
  --cafe-primary: #31573d;
  --cafe-primary-dark: #172e23;

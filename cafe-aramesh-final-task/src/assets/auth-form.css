@@ -80,13 +80,13 @@ a:focus-visible {
 }
 .auth-submit {
   width: 100%;
-  min-height: 42px;
+  min-height: 46px;
   margin-top: 24px;
   padding: 10px 12px;
-  border: 0;
+  border: 1px solid #ffdfa4;
   border-radius: 11px;
-  background: var(--cafe-primary);
-  color: #ffffff;
+  background: #f3ce8a;
+  color: #281b0e;
   box-shadow: 0 0 20px #4c583721;
   font: inherit;
   font-size: 13px;
@@ -94,7 +94,8 @@ a:focus-visible {
   cursor: pointer;
   transition: box-shadow 0.2s;
 }
-.auth-submit:hover {
+.auth-submit:not(:disabled):hover {
+  background: #ffdfa4;
   box-shadow: 0 0 26px #4c583750;
 }
 button:disabled {
@@ -117,8 +118,8 @@ button:disabled {
   margin: 20px 0 0;
 }
 .auth-switch a {
-  color: var(--cafe-primary-dark);
-  text-decoration: none;
+  color: #ffdfa4;
+  text-decoration: underline;
   font-weight: bold;
   margin-inline-start: 5px;
 }

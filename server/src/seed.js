@@ -1,3 +1,4 @@
+import { Order } from './models/order.model.js'
 import { Table } from './models/table.model.js'
 import { MenuItem } from './models/menu-item.model.js'
 import { User } from './models/user.model.js'
@@ -73,7 +74,7 @@ function insertIfMissing(documents) {
 }
 
 export async function seedDatabase() {
-  const models = [Table, MenuItem, User, Session]
+  const models = [Table, MenuItem, User, Session, Order]
   // autoCreate/autoIndex are off (see models/database.js), so create them here, once connected.
   await Promise.all(models.map((model) => model.createCollection()))
   await Promise.all(models.map((model) => model.createIndexes()))
