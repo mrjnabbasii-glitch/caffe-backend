@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { createAuthRouter } from './auth.routes.js'
 import createHealthRouter from './health/health.router.js'
+import createOrderRouter from './orders/create-order.router.js'
 import createGetMenuRouter from './menu/get-menu.router.js'
 import createListTablesRouter from './tables/list-tables.router.js'
 import createLockTableRouter from './tables/lock-table.router.js'
@@ -15,6 +16,7 @@ export default function createApiRouter({ sendResetEmail } = {}) {
   router.use('/auth', createAuthRouter({ sendResetEmail }))
   router.use('/health', createHealthRouter())
   router.use('/menu', createGetMenuRouter())
+  router.use('/orders', createOrderRouter())
   router.use('/tables', createListTablesRouter())
   router.use('/tables/:id/lock', createLockTableRouter())
   router.use('/tables/:id/lock', createReleaseTableRouter())

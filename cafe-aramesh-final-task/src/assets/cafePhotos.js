@@ -117,25 +117,6 @@ export const menuPhotos = {
   47: lemonade
 }
 
-
-// Remote menu photos use local images as a fallback.
-export const realDrinkPhotos = {
-  1: 'https://images.unsplash.com/photo-1783692477716-923ba0cfbf0f?auto=format&fit=crop&w=900&q=82',
-  3: 'https://images.unsplash.com/photo-1780064205176-098641bb1010?auto=format&fit=crop&w=900&q=82',
-  5: 'https://images.unsplash.com/photo-1497636577773-f1231844b336?auto=format&fit=crop&w=900&q=82',
-  6: 'https://images.unsplash.com/photo-1780145968658-beedcf9e8119?auto=format&fit=crop&w=900&q=82',
-  10: 'https://images.unsplash.com/photo-1753513090537-d571cb455015?auto=format&fit=crop&w=900&q=82',
-  11: 'https://images.unsplash.com/photo-1747932947443-5270519b13f0?auto=format&fit=crop&w=900&q=82'
-}
-
 export function menuPhotoFor(item) {
-  return realDrinkPhotos[item.id] || menuPhotos[item.id]
-}
-
-export function useFallbackMenuPhoto(event, itemId) {
-  const image = event.target
-  const fallback = menuPhotos[itemId]
-  if (fallback && image.src !== new URL(fallback, document.baseURI).href) {
-    image.src = fallback
-  }
+  return menuPhotos[item.id]
 }

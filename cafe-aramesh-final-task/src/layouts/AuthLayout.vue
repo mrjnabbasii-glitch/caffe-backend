@@ -2,6 +2,7 @@
   <main class="auth-page" dir="rtl">
     <header>
       <router-link to="/" class="auth-brand"><CafeMark /> کافه آرامش</router-link>
+      <CartLink />
       <router-link to="/" class="back-link"
         >بازگشت به خانه <span aria-hidden="true">←</span></router-link
       >
@@ -17,6 +18,7 @@
 
 <script setup>
 import CafeMark from '../components/CafeMark.vue'
+import CartLink from '../components/CartLink.vue'
 import CabinBird from '../components/CabinBird.vue'
 
 defineProps({ showBird: Boolean })
@@ -97,6 +99,7 @@ header {
   --cafe-border: #e1d1ad9e;
 }
 @media (max-width: 640px) {
+  header { flex-wrap: wrap; gap: 9px; }
   .auth-stage { padding-block: 46px 22px; }
   .auth-panel { background: rgba(27, 33, 23, .87); }
 }

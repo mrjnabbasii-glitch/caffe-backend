@@ -321,3 +321,75 @@ test('Persian usernames work and existing email-only accounts remain usable', as
     .expect(200)
   assert.equal(legacy.body.user.username, null)
 })
+
+test('menu order verifies prices, rejects missing items and handles concurrent retries', async () => {
+  const menu = (await request(app).get('/api/menu').expect(200)).body.items
+  const item = menu[0]
+  const payload = {
+    checkoutKey: 'e'.repeat(36),
+    items: [{ id: item.id, quantity: 2 }],
+    expectedTotal: item.price * 2
+  }
+  const submit = (body, cookie) => {
+    const call = request(app).post('/api/orders')
+    return (cookie ? call.set(auth(cookie)) : call).send(body)
+  }
+  await submit(payload).expect(401)
+  await submit({ ...payload, expectedTotal: 1 }, alice).expect(409)
+  await submit({ ...payload, items: [{ id: 9999, quantity: 1 }] }, alice).expect(409)
+  await submit({ ...payload, items: [{ id: item.id, quantity: 0 }] }, alice).expect(400)
+
+  const results = await Promise.all([submit(payload, alice), submit(payload, alice)])
+  assert.deepEqual(results.map(({ status }) => status).sort(), [200, 201])
+  const [receipt, replay] = results.map(({ body }) => body.order)
+  assert.deepEqual(receipt, replay)
+  assert.equal(receipt.total, item.price * 2)
+  assert.equal(receipt.paymentMethod, 'pay_at_pickup')
+  await submit({ ...payload, expectedTotal: 1 }, alice).expect(409)
+  const separateOrder = (await submit(payload, bob).expect(201)).body.order
+  assert.notEqual(separateOrder.orderId, receipt.orderId)
+
+  await request(app).get('/api/orders/mine').expect(401)
+  await request(app).get('/api/orders/mine?before=invalid').set(auth(alice)).expect(400)
+  const bobHistory = await request(app).get('/api/orders/mine').set(auth(bob)).expect(200)
+  assert.deepEqual(bobHistory.body.orders.map((order) => order.orderId), [separateOrder.orderId])
+  assert.equal(bobHistory.body.nextCursor, null)
+
+  const moreOrderIds = []
+  for (let i = 0; i < 20; i++) {
+    const order = await submit({ ...payload, checkoutKey: i.toString(16).padStart(36, '0') }, alice)
+      .expect(201)
+    moreOrderIds.push(order.body.order.orderId)
+  }
+  const firstPage = await request(app).get('/api/orders/mine').set(auth(alice)).expect(200)
+  assert.deepEqual(firstPage.body.orders.map((order) => order.orderId), [...moreOrderIds].reverse())
+  assert.equal(firstPage.body.nextCursor, moreOrderIds[0])
+  const lastPage = await request(app).get('/api/orders/mine')
+    .query({ before: firstPage.body.nextCursor }).set(auth(alice)).expect(200)
+  assert.equal(lastPage.body.nextCursor, null)
+  assert.equal(lastPage.body.orders.length, 1)
+  assert.deepEqual(lastPage.body.orders[0], {
+    orderId: receipt.orderId,
+    items: [{ id: item.id, title: item.title, unitPrice: item.price, quantity: 2 }],
+    total: receipt.total,
+    createdAt: lastPage.body.orders[0].createdAt
+  })
+  assert.ok(Number.isFinite(Date.parse(lastPage.body.orders[0].createdAt)))
+
+  await request(app).get('/api/orders/cashier').expect(401)
+  const staff = await request(app).get('/api/auth/me').set(auth(bob)).expect(200)
+  const previous = process.env.CASHIER_USER_IDS
+  process.env.CASHIER_USER_IDS = staff.body.user.id
+  try {
+    await request(app).get('/api/orders/cashier').set(auth(alice)).expect(403)
+    const queue = await request(app).get('/api/orders/cashier').set(auth(bob)).expect(200)
+    const queued = queue.body.orders.filter((order) => order.orderId === receipt.orderId)
+    assert.equal(queued.length, 1)
+    assert.equal(queued[0].items[0].quantity, 2)
+    assert.equal(queued[0].total, item.price * 2)
+    assert.ok(queued.every((order) => !Object.hasOwn(order, 'ownerHash')))
+  } finally {
+    if (previous === undefined) delete process.env.CASHIER_USER_IDS
+    else process.env.CASHIER_USER_IDS = previous
+  }
+})

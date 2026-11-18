@@ -1,11 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import { previewMode } from '../services/api'
 
 const authView = () => import('../views/AuthView.vue')
 
 const routes = [
   { path: '/', component: () => import('../views/HomeView.vue') },
   { path: '/menu', component: () => import('../views/MenuView.vue') },
+  { path: '/cart', component: () => import('../views/CartView.vue') },
+  {
+    path: '/cashier',
+    component: () => import('../views/CashierView.vue'),
+    meta: { requiresAuth: !previewMode }
+  },
   { path: '/tables', component: () => import('../views/TablesView.vue') },
   {
     path: '/login',
@@ -27,6 +34,11 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/my-orders',
+    component: () => import('../views/MyOrdersView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/my-reservations',
     component: () => import('../views/MyReservationsView.vue'),
     meta: { requiresAuth: true }
@@ -45,12 +57,12 @@ const routes = [
 // /login?redirect=//evil.example cannot send the user to another site after login.
 export function safeRedirect(value) {
   if (typeof value !== 'string' || !/^\/(?![\/\\])/.test(value) || /[\\\s]/.test(value))
-    return '/my-reservations'
+    return '/'
   const pathname = value.split(/[?#]/)[0]
-  return ['/', '/menu', '/tables', '/reservation', '/my-reservations'].includes(pathname) ||
+  return ['/', '/menu', '/cart', '/cashier', '/tables', '/reservation', '/my-reservations', '/my-orders'].includes(pathname) ||
     /^\/receipt\/CAFE-[A-F0-9]{24}$/.test(pathname)
     ? value
-    : '/my-reservations'
+    : '/'
 }
 const router = createRouter({
   history: createWebHistory(),
